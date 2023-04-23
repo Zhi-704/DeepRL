@@ -68,3 +68,15 @@ def process_img(img, crop="box", pool_size=2, contrast=True, greyscale=True, nor
         img = img.astype(np.float32) / 255
         
     return img
+
+@nb.njit(fastmath=True)
+def get_speed(img):
+    speed_bar = rgb_to_grey(img[84:94,13:14])/255
+    num_ones = 0
+
+    for i in range(len(speed_bar)):
+
+        if speed_bar[i] >= 0.5:
+            num_ones += 1
+
+    return num_ones/len(speed_bar)
