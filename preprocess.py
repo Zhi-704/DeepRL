@@ -102,4 +102,4 @@ def get_steer(img):
         if right_pixel >= 0.5:
             right_ones += 1
 
-    return (right_ones / len(right_bar)) - (left_ones / len(left_bar))
+    return (1 + (right_ones / len(right_bar)) - (left_ones / len(left_bar))) / 2
