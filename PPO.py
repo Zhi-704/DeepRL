@@ -1,5 +1,6 @@
 from preprocess import process_img, get_speed, get_steer
 import tensorflow as tf
+import numpy as np
 
 class ActorModel(tf.keras.Model):
     
@@ -87,6 +88,29 @@ class PPO(object):
     def finish_path():
         """Calculate cumulative rewards."""
 
+class Buffer(object):
+#states
+#actions
+#rewards
+    def __init__(self,size):
+        self.states_buffer = np.zeros(size, dtype = np.float32)
+        self.actions_buffer = np.zeros(size, dtype = np.float32)
+        self.rewards_buffer = np.zeros(size, dtype = np.float32)
+        self.capacity = size
+        self.index = 0
+
+    def collect(self, state, action, reward):
+
+        assert self.index < self.capacity
+        self.states_buffer[self.index] = state
+        self.actions_buffer[self.index] = state
+        self.rewards_buffer[self.index] = state
+        self.index += 1
+
+    def data(self):
+        assert self.index == self.capacity
+        self.index = 0
+        return [self.states_buffer, self.actions_buffer, self.rewards_buffer]
 
 # if __name__ == "__main__":
 #     actor_model = ActorModel()
