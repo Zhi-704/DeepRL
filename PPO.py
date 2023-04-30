@@ -1,4 +1,5 @@
 from preprocess import process_img, get_speed, get_steer
+from tools import GAE
 import tensorflow as tf
 import numpy as np
 import gymnasium as gym
@@ -104,14 +105,18 @@ class PPO(object):
         """Calculate cumulative rewards."""
 
 class Buffer(object):
-#states
-#actions
-#rewards
+
     def __init__(self,size):
         self.states_buffer = np.zeros(size, dtype = np.float32)
         self.actions_buffer = np.zeros(size, dtype = np.float32)
         self.rewards_buffer = np.zeros(size, dtype = np.float32)
+        self.values_buffer = np.zeros(size, dtype = np.float32)
+        self.advantage_buffer = np.zeros(size, dtype = np.float32)
+        self.rtg_buffer = np.zeros(size, dtype = np.float32)
+        self.lam = 0.99
+        self.gamma = 0.99
         self.capacity = size
+        self.path_start = 0
         self.index = 0
 
     def collect(self, state, action, reward):
@@ -126,6 +131,20 @@ class Buffer(object):
         assert self.index == self.capacity
         self.index = 0
         return [self.states_buffer, self.actions_buffer, self.rewards_buffer]
+    
+    def finish_path(self, last_val = 0):
+
+        rewards = np.append(self.rewards_buffer[self.path_start,self.index], last_val)
+        values = np.append(self.values_buffer[self.path_start,self.index], last_val)
+
+        deltas = rewards[:-1] + self.gamma * values[1:] - values [:-1]
+
+        self.advantage_buffer[self.path_start, self.index] = GAE(deltas, self.gamma, self.lam)
+
+        self.rtg_buffer[self.path_start, self.index] = GAE(rewards, self.gamma,1)[:-1]
+
+        self.path_start = self.index
+
 
 # if __name__ == "__main__":
 #     actor_model = ActorModel()
