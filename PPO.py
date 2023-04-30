@@ -1,5 +1,6 @@
 from preprocess import process_img, get_speed, get_steer
 from tools import GAE, standardize
+from loss import ActorLoss
 import tensorflow as tf
 import numpy as np
 import gymnasium as gym
@@ -62,12 +63,16 @@ class CriticModel(tf.keras.Model):
 
 
 class PPO(object):
-    def __init__(critic_lr):
+    def __init__(actor_lr, critic_lr, ε):
         actor_model = ActorModel()
+        actor_model.compile(
+            optimizer = tf.optimizers.Adam(actor_lr),
+            loss = ActorLoss(ε)
+        )
         critic_model = CriticModel()
         critic_model.compile(
             optimizer = tf.optimizers.Adam(critic_lr),
-            loss="mse"
+            loss = "mse"
         )
         buffer = Buffer()
         env = gym.make("CarRacing-v2", domain_randomize=False, continuous=False)
@@ -86,16 +91,18 @@ class PPO(object):
     def update():
         """Main training function."""
     
-    def get_action(self):
-        """Action selection."""
-        return np.argmax(self.actor_model.call(np.array([self.img]), np.array([np.array([self.speed])]), np.array([np.array([self.steer])])))
-
-    def step(self, action):
+    def step(self):
         """Perform the given action in the environment."""
+        probs = self.actor_model.call(np.array([self.img]), np.array([np.array([self.speed])]), np.array([np.array([self.steer])]))
+        action = np.argmax(probs)
+        log_prob = tf.math.log(np.max(probs))
+        value = self.critic_model.call(np.array([self.img]), np.array([np.array([self.speed])]), np.array([np.array([self.steer])]), np.array([np.array([action])]))
         observation, reward, terminated, truncated, info = self.env.step(action)
+        self.buffer.collect(self.img, self.speed, self.steer, action, reward, value, log_prob)
         self.speed = get_steer(observation)
         self.steer = get_steer(observation)
         self.img = process_img(observation)
+        return terminated
 
     def save():
         """Save current agent networks."""
@@ -127,7 +134,7 @@ class Buffer(object):
         self.path_start = 0
         self.index = 0
 
-    def collect(self, img, speed, steering, action, reward, log_prob):
+    def collect(self, img, speed, steering, action, reward, value, log_prob):
 
         assert self.index < self.capacity
         self.images_buffer[self.index] = img
@@ -135,6 +142,7 @@ class Buffer(object):
         self.steering_buffer[self.index] = steering
         self.actions_buffer[self.index] = action
         self.rewards_buffer[self.index] = reward
+        self.values_buffer[self.index] = value
         self.log_prob_buffer[self.index] = log_prob
         self.index += 1
 
