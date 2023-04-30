@@ -57,16 +57,47 @@ class CriticModel(tf.keras.Model):
         return self.dense_5(x)
     
 
-if __name__ == "__main__":
-    actor_model = ActorModel()
-    actor_model.compile(
-        optimizer = tf.optimizers.Adam(0.01),
-        loss="mse", 
-        metrics=["mae"]
-    )
-    critic_model = CriticModel()
-    critic_model.compile(
-        optimizer = tf.optimizers.Adam(0.01),
-        loss="mse", 
-        metrics=["mae"]
-    )
+
+class PPO(object):
+    def __init__():
+        actor_model = ActorModel()
+        critic_model = CriticModel()
+
+    def train_actor():
+        """Actor training function."""
+        
+    def train_critic():
+        """Critic training function."""
+        
+    def update():
+        """Main training function."""
+        
+    def get_action():
+        """Action selection."""
+        
+    def save():
+        """Save current agent networks."""
+        
+    def load():
+        """Load saved agent networks."""
+        
+    def store_transition():
+        """Store transitions to the replay buffer each step."""
+        
+    def finish_path():
+        """Calculate cumulative rewards."""
+
+
+# if __name__ == "__main__":
+#     actor_model = ActorModel()
+#     actor_model.compile(
+#         optimizer = tf.optimizers.Adam(0.01),
+#         loss="mse", 
+#         metrics=["mae"]
+#     )
+#     critic_model = CriticModel()
+#     critic_model.compile(
+#         optimizer = tf.optimizers.Adam(0.01),
+#         loss="mse", 
+#         metrics=["mae"]
+#     )
