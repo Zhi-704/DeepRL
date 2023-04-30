@@ -118,7 +118,7 @@ class PPO(object):
 
 class Buffer(object):
 
-    def __init__(self,size):
+    def __init__(self, size):
         self.images_buffer = np.zeros(size, dtype = np.float32)
         self.speeds_buffer = np.zeros(size, dtype = np.float32)
         self.steering_buffer = np.zeros(size, dtype = np.float32)
@@ -145,6 +145,9 @@ class Buffer(object):
         self.values_buffer[self.index] = value
         self.log_prob_buffer[self.index] = log_prob
         self.index += 1
+
+    def is_full(self):
+        return self.index >= self.capacity
 
     def data(self):
         assert self.index == self.capacity
