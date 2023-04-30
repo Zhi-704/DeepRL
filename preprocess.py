@@ -43,12 +43,12 @@ def rgb_to_grey(img):
     return grey_img
 
 
-def process_img(img, crop="box", pool_size=2, contrast=True, greyscale=True, normalise=True):
+def process_img(img, crop="box", pool_size=2, contrast=True, greyscale=True, normalise=True, reshape=True):
     """
     Pre-process the image
     """
     if crop == "box":
-        # Crop unnecessary pixels
+        # crop unnecessary pixels
         img = img[12:-12, 12:-12]
         
     if pool_size is not None:
@@ -68,6 +68,11 @@ def process_img(img, crop="box", pool_size=2, contrast=True, greyscale=True, nor
     if normalise:
         # Change pixel intensity scale to [0,1]
         img = img.astype(np.float32) / 255
+        
+    if reshape:
+        # Change to a 3D vector
+        shape = img.shape
+        img = img.reshape((shape[0],shape[1],1))
         
     return img
 

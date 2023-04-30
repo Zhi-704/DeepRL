@@ -1,6 +1,7 @@
 from preprocess import process_img, get_speed, get_steer
 import tensorflow as tf
 import numpy as np
+import gymnasium as gym
 
 class ActorModel(tf.keras.Model):
     
@@ -63,7 +64,12 @@ class PPO(object):
     def __init__():
         actor_model = ActorModel()
         critic_model = CriticModel()
-        
+        env = gym.make("CarRacing-v2", domain_randomize=False, continuous=False)
+        for i in range(50):
+            observation, reward, terminated, truncated, info = env.step(0)
+        speed = get_steer(observation)
+        steer = get_steer(observation)
+        img = process_img(observation)
 
     def train_actor():
         """Actor training function."""
@@ -73,10 +79,18 @@ class PPO(object):
         
     def update():
         """Main training function."""
-        
-    def get_action():
+    
+    def get_action(self):
         """Action selection."""
-        
+        return np.argmax(self.actor_model.call(np.array([self.img]), np.array([np.array([self.speed])]), np.array([np.array([self.steer])])))
+
+    def step(self, action):
+        """Perform the given action in the environment."""
+        observation, reward, terminated, truncated, info = self.env.step(action)
+        self.speed = get_steer(observation)
+        self.steer = get_steer(observation)
+        self.img = process_img(observation)
+
     def save():
         """Save current agent networks."""
         
