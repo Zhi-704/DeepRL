@@ -1,5 +1,6 @@
 from preprocess import process_img, get_speed, get_steer
 import tensorflow as tf
+import numpy as np
 
 class ActorModel(tf.keras.Model):
     
@@ -62,6 +63,7 @@ class PPO(object):
     def __init__():
         actor_model = ActorModel()
         critic_model = CriticModel()
+        
 
     def train_actor():
         """Actor training function."""
