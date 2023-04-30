@@ -63,7 +63,7 @@ class CriticModel(tf.keras.Model):
 
 
 class PPO(object):
-    def __init__(actor_lr, critic_lr, ε):
+    def __init__(actor_lr, critic_lr, ε, buffersize):
         actor_model = ActorModel()
         actor_model.compile(
             optimizer = tf.optimizers.Adam(actor_lr),
@@ -74,7 +74,7 @@ class PPO(object):
             optimizer = tf.optimizers.Adam(critic_lr),
             loss = "mse"
         )
-        buffer = Buffer()
+        buffer = Buffer(buffersize)
         env = gym.make("CarRacing-v2", domain_randomize=False, continuous=False)
         for i in range(50):
             observation, reward, terminated, truncated, info = env.step(0)
@@ -90,7 +90,14 @@ class PPO(object):
         
     def update():
         """Main training function."""
-    
+    def learn(self, epochs, batchsize):
+        for epoch in range(epochs):
+            self.buffer.reset()
+            while not self.buffer.is_full():
+                self.step()
+            
+
+
     def step(self):
         """Perform the given action in the environment."""
         probs = self.actor_model.call(np.array([self.img]), np.array([np.array([self.speed])]), np.array([np.array([self.steer])]))
@@ -102,7 +109,22 @@ class PPO(object):
         self.speed = get_steer(observation)
         self.steer = get_steer(observation)
         self.img = process_img(observation)
-        return terminated
+
+        if terminated or self.buffer.is_full():
+            if terminated:
+                last_val = 0
+            else:
+                probs = self.actor_model.call(np.array([self.img]), np.array([np.array([self.speed])]), np.array([np.array([self.steer])]))
+                action = np.argmax(probs)
+                log_prob = tf.math.log(np.max(probs))
+                last_val = self.critic_model.call(np.array([self.img]), np.array([np.array([self.speed])]), np.array([np.array([self.steer])]), np.array([np.array([action])]))
+            self.buffer.finish_path(last_val)
+            self.env.reset()
+            for i in range(50):
+                observation, reward, terminated, truncated, info = self.env.step(0)
+                self.speed = get_steer(observation)
+                self.steer = get_steer(observation)
+                self.img = process_img(observation)
 
     def save():
         """Save current agent networks."""
@@ -145,6 +167,9 @@ class Buffer(object):
         self.values_buffer[self.index] = value
         self.log_prob_buffer[self.index] = log_prob
         self.index += 1
+
+    def reset(self):
+        self.__init__()
 
     def is_full(self):
         return self.index >= self.capacity
