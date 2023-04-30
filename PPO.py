@@ -10,8 +10,8 @@ class ActorModel(tf.keras.Model):
         self.max_pool = tf.keras.layers.MaxPool2D()
         self.flatten = tf.keras.layers.Flatten()
         self.dense_32_sig = tf.keras.layers.Dense(32, activation="sigmoid")
-        self.dense_16_1 = tf.keras.layers.Dense(16)
-        self.dense_16_2 = tf.keras.layers.Dense(16)
+        self.dense_16_1 = tf.keras.layers.Dense(16, activation="relu")
+        self.dense_16_2 = tf.keras.layers.Dense(16, activation="relu")
         self.dense_5 = tf.keras.layers.Dense(5, activation="softmax")
         
     def call(self, input_img, speed=None, steer=None):
@@ -38,8 +38,8 @@ class CriticModel(tf.keras.Model):
         self.max_pool = tf.keras.layers.MaxPool2D()
         self.flatten = tf.keras.layers.Flatten()
         self.dense_32_sig = tf.keras.layers.Dense(32, activation="sigmoid")
-        self.dense_16_1 = tf.keras.layers.Dense(16)
-        self.dense_16_2 = tf.keras.layers.Dense(16)
+        self.dense_16_1 = tf.keras.layers.Dense(16, activation="relu")
+        self.dense_16_2 = tf.keras.layers.Dense(16, activation="relu")
         self.dense_5 = tf.keras.layers.Dense(5, activation="softmax")
         
     def call(self, input_img, speed=None, steer=None, action=None):
