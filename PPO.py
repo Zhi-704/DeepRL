@@ -1,5 +1,5 @@
 from preprocess import process_img, get_speed, get_steer
-from tools import GAE
+from tools import GAE, standardize
 import tensorflow as tf
 import numpy as np
 import gymnasium as gym
@@ -112,30 +112,37 @@ class PPO(object):
 class Buffer(object):
 
     def __init__(self,size):
-        self.states_buffer = np.zeros(size, dtype = np.float32)
+        self.images_buffer = np.zeros(size, dtype = np.float32)
+        self.speeds_buffer = np.zeros(size, dtype = np.float32)
+        self.steering_buffer = np.zeros(size, dtype = np.float32)
         self.actions_buffer = np.zeros(size, dtype = np.float32)
         self.rewards_buffer = np.zeros(size, dtype = np.float32)
         self.values_buffer = np.zeros(size, dtype = np.float32)
         self.advantage_buffer = np.zeros(size, dtype = np.float32)
         self.rtg_buffer = np.zeros(size, dtype = np.float32)
+        self.log_prob_buffer = np.zeros(size, dtype = np.float32)
         self.lam = 0.99
         self.gamma = 0.99
         self.capacity = size
         self.path_start = 0
         self.index = 0
 
-    def collect(self, state, action, reward):
+    def collect(self, img, speed, steering, action, reward, log_prob):
 
         assert self.index < self.capacity
-        self.states_buffer[self.index] = state
-        self.actions_buffer[self.index] = state
-        self.rewards_buffer[self.index] = state
+        self.images_buffer[self.index] = img
+        self.speeds_buffer[self.index] = speed
+        self.steering_buffer[self.index] = steering
+        self.actions_buffer[self.index] = action
+        self.rewards_buffer[self.index] = reward
+        self.log_prob_buffer[self.index] = log_prob
         self.index += 1
 
     def data(self):
         assert self.index == self.capacity
         self.index = 0
-        return [self.states_buffer, self.actions_buffer, self.rewards_buffer]
+        self.advantage_buffer = standardize(self.advantage_buffer)
+        return [self.images_buffer, self.speeds_buffer, self.steering_buffer, self.actions_buffer, self.rewards_buffer, self.advantage_buffer, self.rtg_buffer, self.log_prob_buffer]
     
     def finish_path(self, last_val = 0):
 
