@@ -43,7 +43,7 @@ class CriticModel(tf.keras.Model):
         self.dense_32_sig = tf.keras.layers.Dense(32, activation="sigmoid")
         self.dense_16_1 = tf.keras.layers.Dense(16, activation="relu")
         self.dense_16_2 = tf.keras.layers.Dense(16, activation="relu")
-        self.dense_5 = tf.keras.layers.Dense(5, activation="softmax")
+        self.dense_1 = tf.keras.layers.Dense(1, activation="linear")
         
     def call(self, input_img, speed=None, steer=None, action=None):
         x = self.conv_8_3(input_img)
@@ -57,14 +57,19 @@ class CriticModel(tf.keras.Model):
         x = tf.experimental.numpy.append(x, action, axis=1)
         x = self.dense_16_1(x)
         x = self.dense_16_2(x)
-        return self.dense_5(x)
+        return self.dense_1(x)
     
 
 
 class PPO(object):
-    def __init__():
+    def __init__(critic_lr):
         actor_model = ActorModel()
         critic_model = CriticModel()
+        critic_model.compile(
+            optimizer = tf.optimizers.Adam(critic_lr),
+            loss="mse"
+        )
+        buffer = Buffer()
         env = gym.make("CarRacing-v2", domain_randomize=False, continuous=False)
         for i in range(50):
             observation, reward, terminated, truncated, info = env.step(0)
